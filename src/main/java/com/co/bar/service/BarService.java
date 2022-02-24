@@ -18,7 +18,7 @@ import java.util.stream.IntStream;
 
 @Service
 @Log4j2
-public class BarService {
+public class BarService implements IBarService {
 
     private static final Logger LOG = LoggerFactory.getLogger(BarService.class);
 

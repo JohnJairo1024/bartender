@@ -1,7 +1,7 @@
 package com.co.bar.controller;
 
 import com.co.bar.dto.BarDto;
-import com.co.bar.service.BarService;
+import com.co.bar.service.IBarService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class BarController {
 
     @Autowired
-    BarService barService;
+    IBarService service;
 
     @GetMapping()
     public String health() {
@@ -31,6 +31,6 @@ public class BarController {
      */
     @GetMapping(value = "/tender")
     public ResponseEntity<BarDto> getBartender(@RequestParam int iteraciones, @RequestParam int idPilaDataBase) {
-        return barService.getBar(iteraciones, idPilaDataBase);
+        return service.getBar(iteraciones, idPilaDataBase);
     }
 }
