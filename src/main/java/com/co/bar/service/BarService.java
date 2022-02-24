@@ -4,6 +4,8 @@ import com.co.bar.dto.BarDto;
 import com.co.bar.entity.ArraysEntity;
 import com.co.bar.repository.BarRepository;
 import lombok.extern.log4j.Log4j2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +19,9 @@ import java.util.stream.IntStream;
 @Log4j2
 public class BarService {
 
-    private static String DELIMITER = ",";
+    private static final Logger LOG = LoggerFactory.getLogger(BarService.class);
+
+    private static final String DELIMITER = ",";
     @Autowired
     BarRepository repository;
     private int count = 0;
@@ -74,6 +78,7 @@ public class BarService {
                     }
                 }
                 logArray(arrayA, arrayB);
+//                barDto.setMessage(logArray);
                 listaNumeros = new ArrayList<>(arrayA);
                 if (x + 1 < iteraciones) {
                     arrayA.clear();
@@ -84,6 +89,9 @@ public class BarService {
             arrayResponse.addAll(arrayA);
         }
 
+        barDto.setResponseCode(200);
+
+
         String respuesta = arrayResponse.stream().map(Object::toString).collect(Collectors.joining(DELIMITER));
         barDto.setRespuesta(respuesta);
         return ResponseEntity.status(HttpStatus.OK).body(barDto);
@@ -92,16 +100,11 @@ public class BarService {
 
     private void logArray(List<Integer> arrayA, List<Integer> arrayB) {
         count++;
-        System.out.print("\nA" + count + "= ");
-        logIteracion(arrayA);
-        System.out.print("\nB= ");
-        logIteracion(arrayB);
-    }
-
-    public void logIteracion(List<Integer> array) {
-        for (Integer x : array) {
-            System.out.print("|" + x + "|");
-        }
+        String arrayAA = arrayA.stream().map(Object::toString).collect(Collectors.joining(DELIMITER));
+        LOG.info("*******************");
+        LOG.info("A{} = {}", count, arrayAA);
+        String arrayBB = arrayB.stream().map(Object::toString).collect(Collectors.joining(DELIMITER));
+        LOG.info("B{} = {}", count, arrayBB);
     }
 
 

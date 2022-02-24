@@ -5,7 +5,7 @@ server:
 spring:
   # Database
   datasource:
-#    driver-class-name: com.mysql.jdbc.Driver
+    #    driver-class-name: com.mysql.jdbc.Driver
     url: jdbc:mysql://localhost:3306/bartender
     username: root
     password:
@@ -14,15 +14,15 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-#    database: postgresql
-#    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    #    database: postgresql
+    #    database-platform: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
     generate-ddl: false
 # Logger configuration
 logging:
   pattern:
-#    file: '%d{yyyy-MMM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{15} - %msg%n'
-#    console: '%d{yyyy-MMM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{15} - %msg%n'
+    file: '%d{yyyy-MMM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{15} - %msg%n'
+    console: '%d{yyyy-MMM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{15} - %msg%n'
   level:
     org.springframework: INFO
     org.hibernate: DEBUG
