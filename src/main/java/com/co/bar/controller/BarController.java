@@ -1,7 +1,6 @@
 package com.co.bar.controller;
 
 import com.co.bar.dto.BarDto;
-import com.co.bar.exception.NotFoundException;
 import com.co.bar.service.BarService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +30,7 @@ public class BarController {
      * @return retorna
      */
     @GetMapping(value = "/tender")
-    public ResponseEntity<BarDto> getBartender(@RequestParam int iteraciones, @RequestParam int idPilaDataBase) throws NotFoundException {
+    public ResponseEntity<BarDto> getBartender(@RequestParam int iteraciones, @RequestParam int idPilaDataBase) {
         return barService.getBar(iteraciones, idPilaDataBase);
     }
 }

@@ -1,108 +1,120 @@
 package com.co.bar.service;
 
-import brave.Tracer;
 import com.co.bar.dto.BarDto;
 import com.co.bar.entity.ArraysEntity;
-import com.co.bar.exception.NotFoundException;
 import com.co.bar.repository.BarRepository;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Service
+@Log4j2
 public class BarService {
 
+    private static String DELIMITER = ",";
     @Autowired
     BarRepository repository;
-    Tracer tracer;
+    private int count = 0;
 
-    public static String solve(int q, List<Integer> values) {
-        List<Integer> primes = primeNumbers(q);
-
-        List<Integer> actualValues = new ArrayList<>(values);
-        List<Integer> solution = new ArrayList<>();
-        List<Integer> tmpValues = new ArrayList<>();
-
-        for (int iQ = 0; iQ < q; iQ++) {
-            // clear A from last Qi
-            tmpValues.clear();
-            for (int j = actualValues.size() - 1; j >= 0; j--) {
-                if (actualValues.get(j) % primes.get(iQ) == 0) {
-                    //add to solution
-                    solution.add(actualValues.get(j));
-                } else {
-                    //rebuild A
-                    tmpValues.add(0, actualValues.get(j));
-                }
-            }
-            actualValues.clear();
-            actualValues = new ArrayList<>(tmpValues);
-
-        }
-        // Adding rest of numbers from B
-        solution.addAll(tmpValues);
-
-        // Converting solution to String comma separated
-        return solution.stream().map(String::valueOf).collect(Collectors.joining(","));
+    /**
+     * Verifica si un numero es primo
+     *
+     * @param n
+     * @return
+     */
+    public static List<Integer> numeroPrimo(int n) {
+        return IntStream.rangeClosed(2, n)
+                .filter(BarService::esPrimo).boxed()
+                .collect(Collectors.toList());
     }
 
-    public static List<Integer> primeNumbers(int n) {
-        List<Integer> primeNumbers = new ArrayList<>();
-        int i = 1;
-        while (primeNumbers.size() < n) {
-            if (isPrime(++i)) {
-                primeNumbers.add(i);
-            }
-        }
-        return primeNumbers;
-    }
-
-    public static boolean isPrime(int number) {
+    /**
+     * Verifica si un numero es primo
+     *
+     * @param number
+     * @return
+     */
+    public static boolean esPrimo(int number) {
         return !IntStream.rangeClosed(2, number / 2).anyMatch(i -> number % i == 0);
     }
 
-    public ResponseEntity<BarDto> getBar(int iteraciones, int idPilaDataBase) throws NotFoundException {
-
+    public ResponseEntity<BarDto> getBar(int iteraciones, int idPilaDataBase) {
         var barDto = new BarDto();
+
+        if (idPilaDataBase > 6 || idPilaDataBase < 1) {
+            return getBarDtoResponse(barDto);
+        }
+
         Optional<ArraysEntity> bartender = repository.findById(idPilaDataBase);
+        List<Integer> arrayResponse = new ArrayList<>();
         if (!bartender.isPresent()) {
-            barDto.setResponseCode(400);
-            barDto.setMessage("No se encontro el id de la pila indicado.");
-            barDto.setTransactionId(tracer.currentSpan().context().traceIdString());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(barDto);
-//            throw new NotFoundException("The provided id does not exist.");
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } else {
+            List<Integer> listaNumeros = Arrays.stream(bartender.get().getInput_array().split(DELIMITER))
+                    .sorted(Collections.reverseOrder())
+                    .map(Integer::parseInt).collect(Collectors.toList());
+
+            List<Integer> arrayA = new ArrayList<>();
+            List<Integer> arrayB = new ArrayList<>();
+            List<Integer> arrayP = numeroPrimo(100);
+
+            for (int x = 0; x < iteraciones; x++) {
+                for (Integer number : listaNumeros) {
+                    if (number % arrayP.get(x) == 0) {
+                        arrayB.add(number);
+                        arrayResponse.add(number);
+                    } else {
+                        arrayA.add(number);
+                    }
+                }
+                logArray(arrayA, arrayB);
+                listaNumeros = new ArrayList<>(arrayA);
+                if (x + 1 < iteraciones) {
+                    arrayA.clear();
+                    arrayB.clear();
+                }
+            }
+            count = Integer.valueOf(0);
+            arrayResponse.addAll(arrayA);
         }
 
-        String input_array = bartender.get().getInput_array();
-        String[] parts = input_array.split(",");
-
-//        List<String> list = Arrays.stream(parts).collect(Collectors.toList());
-//        list.stream().forEach(System.out::println);
-        List<Integer> values = new ArrayList<>();
-
-        for (String part : parts) {
-            values.add(Integer.parseInt(part));
-        }
-
-        String solution = this.solve(iteraciones, values);
-        barDto.setResponseCode(200);
-        barDto.setData(solution);
+        String respuesta = arrayResponse.stream().map(Object::toString).collect(Collectors.joining(DELIMITER));
+        barDto.setRespuesta(respuesta);
         return ResponseEntity.status(HttpStatus.OK).body(barDto);
 
+    }
 
-//        if (idPilaDataBase > 6 || idPilaDataBase < 1) {
-//            barDto.setResponseCode(400);
-//            barDto.setMessage("No se encontro el id de la pila indicado.");
-//            barDto.setTransactionId(tracer.currentSpan().context().traceIdString());
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(barDto);
-//        }
+    private void logArray(List<Integer> arrayA, List<Integer> arrayB) {
+        count++;
+        System.out.print("\nA" + count + "= ");
+        logIteracion(arrayA);
+        System.out.print("\nB= ");
+        logIteracion(arrayB);
+    }
+
+    public void logIteracion(List<Integer> array) {
+        for (Integer x : array) {
+            System.out.print("|" + x + "|");
+        }
+    }
+
+
+    /**
+     * @param barDto
+     * @return
+     */
+    private ResponseEntity<BarDto> getBarDtoResponse(BarDto barDto) {
+        barDto.setResponseCode(400);
+        barDto.setMessage("No se encontro el id de la pila indicado.");
+        barDto.setTransactionId(System.currentTimeMillis());
+        barDto.setRespuesta(null);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(barDto);
     }
 
 }

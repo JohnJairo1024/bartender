@@ -9,7 +9,7 @@ public class BarDto {
 
     private int responseCode;
     private String message;
-    private String transactionId;
-    private String data;
+    private Long transactionId;
+    private String respuesta;
 
 }
